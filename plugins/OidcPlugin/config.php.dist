@@ -1,0 +1,9 @@
+<?php
+
+
+$config = [
+    'OIDC_CLIENT_ID' => 'phplist',
+    'OIDC_CLIENT_SECRET' => 'phplist',
+    'OIDC_ISSUER_URL' => 'http://localhost:8080/realms/master',
+    'OIDC_REDIRECT_URI' => 'http://localhost/lists/admin/plugins/OidcPlugin/index.php'
+];
