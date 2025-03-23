@@ -1,9 +1,8 @@
 <?php
 
-
 $config = [
-    'OIDC_CLIENT_ID' => 'phplist',
-    'OIDC_CLIENT_SECRET' => 'phplist',
-    'OIDC_ISSUER_URL' => 'http://localhost:8080/realms/master',
-    'OIDC_REDIRECT_URI' => 'http://localhost/lists/admin/plugins/OidcPlugin/index.php'
+    'OIDC_CLIENT_ID' =>  getConfig('oidc_client_id') ?? 'phplist',
+    'OIDC_CLIENT_SECRET' => getConfig('oidc_client_secret') ?? 'phplist',
+    'OIDC_ISSUER_URL' => getConfig('oidc_issuer_url') ?? 'https://sso.phplist.com:8443/realms/phplist',
+    'OIDC_REDIRECT_URI' => getConfig('oidc_redirect_uri') ?? 'http://localhost/lists/admin/plugins/OidcPlugin/index.php'
 ];

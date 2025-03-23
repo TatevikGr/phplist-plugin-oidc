@@ -13,13 +13,60 @@ class OidcPlugin extends phplistPlugin
     private $clientSecret;
     private $issuerUrl;
     private $redirectUri;
-    private $db;
+    public $ssoProvider = true;
+    public $autUrl = 'oidc';
+    private const CATEGORY = 'SSO config';
+
+    public $settings = [
+        'display_name' => [
+            'value' => 'OIDC',
+            'description' => 'SSO display name',
+            'type' => 'text',
+            'allowempty' => 0,
+            'category' => self::CATEGORY,
+        ],
+        'hide_default_login' => [
+            'value' => false,
+            'description' => 'Hide default login option',
+            'type' => 'boolean',
+            'allowempty' => 0,
+            'category' => self::CATEGORY,
+        ],
+        'oidc_client_id' => [
+            'value' => 'phplist',
+            'description' => 'OIDC client id',
+            'type' => 'text',
+            'allowempty' => 0,
+            'category' => self::CATEGORY,
+        ],
+        'oidc_client_secret' => [
+            'value' => 'phplist',
+            'description' => 'OIDC client secret',
+            'type' => 'text',
+            'allowempty' => 0,
+            'category' => self::CATEGORY,
+        ],
+        'oidc_issuer_url' => [
+            'value' => 'https://sso.phplist.com:8443/realms/phplist',
+            'description' => 'OIDC issuer url   ',
+            'type' => 'text',
+            'allowempty' => 0,
+            'category' => self::CATEGORY,
+        ],
+        'oidc_redirect_uri' => [
+            'value' => 'https://www.phplist.com/lists/admin/plugins/OidcPlugin/index.php',
+            'description' => 'OIDC redirect url',
+            'type' => 'text',
+            'allowempty' => 0,
+            'category' => self::CATEGORY,
+        ],
+    ];
 
     public function __construct()
     {
         parent::__construct();
         global $config;
-        $this->db = $GLOBALS['tables'];
+        $this->tables = $GLOBALS['tables'];
         $requiredKeys = ['OIDC_CLIENT_ID', 'OIDC_CLIENT_SECRET', 'OIDC_ISSUER_URL', 'OIDC_REDIRECT_URI'];
 
         foreach ($requiredKeys as $key) {
@@ -62,7 +109,7 @@ class OidcPlugin extends phplistPlugin
 
         $admindata = Sql_Fetch_Assoc_Query(sprintf(
                 'select loginname,password,disabled,id,superuser,privileges from %s where loginname="%s"',
-                $this->db['admin'],
+                $this->tables['admin'],
                 addslashes($login))
         );
 
@@ -78,7 +125,7 @@ class OidcPlugin extends phplistPlugin
 
             $userCreated = Sql_Query(sprintf(
                 'insert into %s (loginname,email,namelc,created,privileges,superuser) values("%s","%s","%s",now(),"%s", "%d")',
-                $this->db['admin'],
+                $this->tables['admin'],
                 addslashes($login),
                 sql_escape($userInfo->email),
                 strtolower(addslashes($login)),
@@ -87,7 +134,7 @@ class OidcPlugin extends phplistPlugin
             ));
             $admindata = Sql_Fetch_Assoc_Query(sprintf(
                 'select loginname,password,disabled,id,superuser,privileges from %s where loginname="%s"',
-                $this->db['admin'],
+                $this->tables['admin'],
                 addslashes($login)
             ));
             if ($payload->sub && !$userCreated || !$admindata) {
@@ -104,7 +151,7 @@ class OidcPlugin extends phplistPlugin
 
         Sql_Query(sprintf('insert into %s (moment,adminid,remote_ip4,remote_ip6,sessionid,active) 
         values(%d,%d,"%s","%s","%s",1)',
-            $this->db['admin_login'],time(),$admindata['id'],getClientIP(),"",session_id()));
+            $this->tables['admin_login'],time(),$admindata['id'],getClientIP(),"",session_id()));
 
         if ($admindata['privileges']) {
             $_SESSION['privileges'] = unserialize($admindata['privileges']);
@@ -115,15 +162,15 @@ class OidcPlugin extends phplistPlugin
 
     public function dependencyCheck(): array
     {
-        if (version_compare(PHP_VERSION, '7.0.0') < 0) {
-            return ['PHP version 7.0 or up'  => false];
+        if (version_compare(PHP_VERSION, '7.4.0') < 0) {
+            return ['PHP version 7.4 or up'  => false];
         }
 
         $allowEnable = true;
 
         return [
             'Oidc Configured' => $allowEnable,
-            'phpList version 3.7.0 or later' => version_compare(VERSION, '3.7.0') >= 0,
+            'phpList version 3.6.7 or later' => version_compare(VERSION, '3.6.7') >= 0,
         ];
     }
 }
